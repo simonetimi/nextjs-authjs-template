@@ -1,28 +1,29 @@
 'use client';
 
-import { CardWrapper } from '@/components/auth/CardWrapper';
-import { SignupSchema } from '@/schemas';
 import { useState, useTransition } from 'react';
-
-import * as z from 'zod';
-
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/navigation';
+import * as z from 'zod';
+
+import { signup } from '@/actions/signup';
+import { CardWrapper } from '@/components/auth/CardWrapper';
+import { FormError } from '@/components/FormError';
+import { FormSuccess } from '@/components/FormSuccess';
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
+  FormField,
   FormItem,
   FormLabel,
   FormMessage,
-  FormField,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { FormError } from '@/components/FormError';
-import { FormSuccess } from '@/components/FormSuccess';
-import { signup } from '@/actions/signup';
+import { SignupSchema } from '@/schemas';
 
 export const SignupForm = () => {
+  const router = useRouter();
   const [error, setError] = useState<string | undefined>('');
   const [success, setSuccess] = useState<string | undefined>('');
   const [isPending, startTransition] = useTransition();

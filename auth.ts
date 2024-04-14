@@ -1,17 +1,79 @@
 import { PrismaAdapter } from '@auth/prisma-adapter';
+import { UserRole } from '@prisma/client';
 import { compare } from 'bcryptjs';
-import NextAuth from 'next-auth';
+import NextAuth, { type DefaultSession } from 'next-auth';
+import { JWT } from 'next-auth/jwt';
 import Credentials from 'next-auth/providers/credentials';
 import GitHub from 'next-auth/providers/github';
 import Google from 'next-auth/providers/google';
 
 import { getUserByEmail } from '@/lib/data';
+import { getUserById } from '@/lib/data';
 import { prisma } from '@/lib/db';
 import { LoginSchema } from '@/schemas';
+
+//extend type for token to include role
+declare module 'next-auth/jwt' {
+  interface JWT {
+    role?: UserRole;
+  }
+}
+
+// extend type for session to include role
+declare module 'next-auth' {
+  interface Session {
+    user: {
+      role: UserRole;
+    } & DefaultSession['user'];
+  }
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   session: { strategy: 'jwt' },
+  pages: {
+    signIn: '/auth/login',
+    error: '/auth/error',
+  },
+  events: {
+    async linkAccount({ user }) {
+      await prisma.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          emailVerified: new Date(),
+        },
+      });
+    },
+  },
+  callbacks: {
+    async signIn({ user }) {
+      /*
+      const existingUser = await getUserById(user.id);
+      if (!existingUser || !existingUser.emailVerified) {
+        return false;
+      }
+       */
+      return true;
+    },
+    async session({ token, session }) {
+      if (token.sub && session.user) {
+        session.user.id = token.sub;
+      }
+      if (token.role && session.user) {
+        session.user.role = token.role;
+      }
+      return session;
+    },
+    async jwt({ token }) {
+      if (!token.sub) return token;
+      const existingUser = await getUserById(token.sub);
+      if (!existingUser) return token;
+      token.role = existingUser.Role;
+      return token;
+    },
+  },
   providers: [
     Credentials({
       async authorize(credentials) {
@@ -30,7 +92,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         return null;
       },
     }),
-    Google,
-    GitHub,
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    }),
+    GitHub({
+      clientId: process.env.GITHUB_CLIENT_ID,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET,
+    }),
   ],
 });
