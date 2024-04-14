@@ -6,8 +6,6 @@ import {
   publicRoutes,
 } from '@/routes';
 
-// TODO landing page and info page to render independently from authentication
-
 export default auth((req) => {
   const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
@@ -23,7 +21,7 @@ export default auth((req) => {
   // auth routes are not protected, but if the user is logged it redirect to an appropriate route (like profile or settings)
   if (isAuthRoute) {
     if (isLoggedIn) {
-      Response.redirect(new URL(DEFAULT_LOGGED_IN_REDIRECT, nextUrl));
+      return Response.redirect(new URL(DEFAULT_LOGGED_IN_REDIRECT, nextUrl));
     }
     return;
   }
