@@ -3,8 +3,8 @@ import { AuthError } from 'next-auth';
 import * as z from 'zod';
 
 import { signIn } from '@/auth';
-import { getVerificationTokenByEmail } from '@/data/token';
 import { getUserByEmail } from '@/data/user';
+import { getVerificationTokenByEmail } from '@/data/verificationToken';
 import { sendVerificationEmail } from '@/lib/mail';
 import { generateVerificationToken } from '@/lib/tokens';
 import { DEFAULT_LOGGED_IN_REDIRECT } from '@/routes';
