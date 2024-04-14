@@ -9,6 +9,7 @@ import * as z from 'zod';
 import { login } from '@/actions/login';
 import { CardWrapper } from '@/components/auth/CardWrapper';
 import { FormError } from '@/components/FormError';
+import { FormSuccess } from '@/components/FormSuccess';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -28,6 +29,7 @@ export const LoginForm = () => {
       ? 'Email already in use with different provider!'
       : '';
   const [error, setError] = useState<string | undefined>('');
+  const [success, setSuccess] = useState<string | undefined>('');
   const [isPending, startTransition] = useTransition();
   const form = useForm({
     resolver: zodResolver(LoginSchema),
@@ -42,8 +44,7 @@ export const LoginForm = () => {
       (async () => {
         const response = await login(values);
         setError(response?.error);
-        // TODO: to add when adding 2FA
-        // setSuccess(data?.success)
+        setSuccess(response?.success);
       })();
     });
   };
@@ -95,6 +96,7 @@ export const LoginForm = () => {
             ></FormField>
           </div>
           <FormError message={error || urlError} />
+          <FormSuccess message={success} />
           <Button type="submit" className="w-full" disabled={isPending}>
             Login
           </Button>
