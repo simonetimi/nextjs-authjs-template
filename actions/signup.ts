@@ -2,7 +2,7 @@
 import { hash } from 'bcryptjs';
 import * as z from 'zod';
 
-import { getUserByEmail } from '@/lib/data';
+import { getUserByEmail } from '@/data/user';
 import { prisma } from '@/lib/db';
 import { SignupSchema } from '@/schemas';
 

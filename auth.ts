@@ -7,8 +7,8 @@ import Credentials from 'next-auth/providers/credentials';
 import GitHub from 'next-auth/providers/github';
 import Google from 'next-auth/providers/google';
 
-import { getUserByEmail } from '@/lib/data';
-import { getUserById } from '@/lib/data';
+import { getUserByEmail } from '@/data/user';
+import { getUserById } from '@/data/user';
 import { prisma } from '@/lib/db';
 import { LoginSchema } from '@/schemas';
 
