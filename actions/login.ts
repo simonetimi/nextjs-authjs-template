@@ -3,7 +3,9 @@ import { AuthError } from 'next-auth';
 import * as z from 'zod';
 
 import { signIn } from '@/auth';
+import { getVerificationTokenByEmail } from '@/data/token';
 import { getUserByEmail } from '@/data/user';
+import { sendVerificationEmail } from '@/lib/mail';
 import { generateVerificationToken } from '@/lib/tokens';
 import { DEFAULT_LOGGED_IN_REDIRECT } from '@/routes';
 import { LoginSchema } from '@/schemas';
@@ -26,8 +28,36 @@ export const login = async (values: z.infer<typeof LoginSchema>) => {
 
   // check if user is verified
   if (!existingUser.emailVerified) {
-    await generateVerificationToken(existingUser.email);
-    return { success: 'Verification email has been re-sent!' };
+    // check when last token was created. if less than 3 minutes, return error
+    const verificationToken = await getVerificationTokenByEmail(
+      existingUser.email,
+    );
+    const now = new Date();
+    const THREE_MINUTES_IN_MS = 180000;
+    const ONE_HOUR_IN_MS = 3600000;
+    if (
+      Number(now) - Number(verificationToken?.expires) + ONE_HOUR_IN_MS <
+      THREE_MINUTES_IN_MS
+    ) {
+      return {
+        error: 'A verification email has been already requested!',
+      };
+    }
+
+    // create and send new verification token
+    const newVerificationToken = await generateVerificationToken(
+      existingUser.email,
+    );
+
+    // send email
+    await sendVerificationEmail(
+      newVerificationToken.email,
+      newVerificationToken.token,
+    );
+
+    return {
+      success: 'A new verification email has been sent!',
+    };
   }
 
   try {
@@ -42,7 +72,7 @@ export const login = async (values: z.infer<typeof LoginSchema>) => {
         case 'CredentialsSignin':
           return { error: 'Wrong username or password!' };
         default:
-          return { error: error.message };
+          return { error: 'Something went wrong!' };
       }
     }
     throw error;

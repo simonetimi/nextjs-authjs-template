@@ -4,6 +4,7 @@ import * as z from 'zod';
 
 import { getUserByEmail } from '@/data/user';
 import { prisma } from '@/lib/db';
+import { sendVerificationEmail } from '@/lib/mail';
 import { generateVerificationToken } from '@/lib/tokens';
 import { SignupSchema } from '@/schemas';
 
@@ -34,7 +35,11 @@ export const signup = async (values: z.infer<typeof SignupSchema>) => {
     },
   });
 
+  // create verification token
   const verificationToken = await generateVerificationToken(email);
+
+  // send email
+  await sendVerificationEmail(verificationToken.email, verificationToken.token);
 
   return { success: 'Signed up! Check your email' };
 };
