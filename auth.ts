@@ -5,7 +5,7 @@ import Google from 'next-auth/providers/google';
 
 import { db } from '@/lib/db';
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const { handlers, auth } = NextAuth({
   adapter: PrismaAdapter(db),
   providers: [Google, GitHub],
 });
