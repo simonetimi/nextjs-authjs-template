@@ -1,9 +1,10 @@
 'use server';
-import * as z from 'zod';
 import { hash } from 'bcrypt';
-import { db } from '@/lib/db';
-import { SignupSchema } from '@/schemas';
+import * as z from 'zod';
+
 import { getUserByEmail } from '@/lib/data';
+import { prisma } from '@/lib/db';
+import { SignupSchema } from '@/schemas';
 
 export const signup = async (values: z.infer<typeof SignupSchema>) => {
   const validatedFields = SignupSchema.safeParse(values);
@@ -24,7 +25,7 @@ export const signup = async (values: z.infer<typeof SignupSchema>) => {
   const hashedPassword = await hash(password, 12);
 
   // create and save new user
-  const newUser = await db.user.create({
+  await prisma.user.create({
     data: {
       name,
       email,
