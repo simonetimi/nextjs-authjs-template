@@ -9,7 +9,7 @@ import { prisma } from '@/lib/db';
 export const generateTwoFactorToken = async (email: string) => {
   const token = crypto.randomInt(100_000, 1_000_000).toString();
   const now = new Date();
-  const expires = new Date(now.setMinutes(now.getMinutes() + 15)); //15 minutes from now
+  const expires = new Date(now.setMinutes(now.getMinutes() + 10)); //10 minutes from now
   const existingToken = await getTwoFactorTokenByEmail(email);
   if (existingToken) {
     await prisma.twoFactorToken.delete({
