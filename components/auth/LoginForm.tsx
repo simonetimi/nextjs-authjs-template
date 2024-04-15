@@ -123,31 +123,33 @@ export const LoginForm = () => {
                 ></FormField>
               </>
             ) : (
-              <FormField
-                key="two-factor-code"
-                control={form.control}
-                name="code"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>2FA Code</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="Enter code"
-                        type="tel"
-                        disabled={isPending}
-                      />
-                    </FormControl>
-                    <Button
-                      variant="link"
-                      size="sm"
-                      className="px-0 font-normal"
-                      asChild
-                    ></Button>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              ></FormField>
+              <>
+                <FormField
+                  key="two-factor-code"
+                  control={form.control}
+                  name="code"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>2FA Code</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder="Enter code"
+                          type="tel"
+                          disabled={isPending}
+                        />
+                      </FormControl>
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="px-0 font-normal"
+                        asChild
+                      ></Button>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                ></FormField>
+              </>
             )}
           </div>
           <FormError message={error || urlError} />
