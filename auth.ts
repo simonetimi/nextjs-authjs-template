@@ -7,6 +7,7 @@ import Credentials from 'next-auth/providers/credentials';
 import GitHub from 'next-auth/providers/github';
 import Google from 'next-auth/providers/google';
 
+import { getTwoFactorConfirmationByUserId } from '@/data/twoFactorConfirmation';
 import { getUserByEmail } from '@/data/user';
 import { getUserById } from '@/data/user';
 import { prisma } from '@/lib/db';
@@ -57,9 +58,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const existingUser = await getUserById(user.id);
         if (!existingUser?.emailVerified)
           throw new Error('Your email is not verified!');
-      }
 
-      // TODO 2fa
+        // check for 2FA
+        if (existingUser.isTwoFactorEnabled) {
+          const twoFactorConfirmation = await getTwoFactorConfirmationByUserId(
+            user.id,
+          );
+          if (!twoFactorConfirmation) return false;
+
+          // login permitted, delete 2FA
+          await prisma.twoFactorConfirmation.delete({
+            where: {
+              id: twoFactorConfirmation.id,
+            },
+          });
+        }
+      }
 
       return true;
     },
