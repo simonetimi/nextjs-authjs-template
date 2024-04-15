@@ -64,7 +64,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           const twoFactorConfirmation = await getTwoFactorConfirmationByUserId(
             user.id,
           );
-          if (!twoFactorConfirmation) return false;
+          if (!twoFactorConfirmation) throw new Error('2FA access denied!');
 
           // login permitted, delete 2FA
           await prisma.twoFactorConfirmation.delete({
