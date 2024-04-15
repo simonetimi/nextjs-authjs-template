@@ -3,7 +3,7 @@ import * as z from 'zod';
 
 import { getPasswordResetTokenByEmail } from '@/data/passwordResetToken';
 import { getUserByEmail } from '@/data/user';
-import { sentPasswordResetEmail } from '@/lib/mail';
+import { sendPasswordResetEmail } from '@/lib/mail';
 import { generatePasswordResetToken } from '@/lib/tokens';
 import { RequestPasswordResetSchema } from '@/schemas';
 
@@ -45,7 +45,7 @@ export const requestPasswordReset = async (
     existingUser.email,
   );
 
-  await sentPasswordResetEmail(
+  await sendPasswordResetEmail(
     newPasswordResetToken.email,
     newPasswordResetToken.token,
   );

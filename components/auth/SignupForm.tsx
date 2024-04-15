@@ -3,7 +3,6 @@
 import { useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
 import * as z from 'zod';
 
 import { signup } from '@/actions/signup';
@@ -23,7 +22,6 @@ import { Input } from '@/components/ui/input';
 import { SignupSchema } from '@/schemas';
 
 export const SignupForm = () => {
-  const router = useRouter();
   const [error, setError] = useState<string | undefined>('');
   const [success, setSuccess] = useState<string | undefined>('');
   const [isPending, startTransition] = useTransition();

@@ -13,7 +13,7 @@ export const sendVerificationEmail = async (email: string, token: string) => {
   });
 };
 
-export const sentPasswordResetEmail = async (email: string, token: string) => {
+export const sendPasswordResetEmail = async (email: string, token: string) => {
   const confirmLink = `${process.env.DOMAIN}/auth/password-reset/?token=${token}`;
 
   await resend.emails.send({
@@ -21,5 +21,14 @@ export const sentPasswordResetEmail = async (email: string, token: string) => {
     to: email,
     subject: 'Reset your password',
     html: `<p>Click <a href=${confirmLink}>here</a> to reset and create a new password.</p>`,
+  });
+};
+
+export const sendTwoFactorTokenEmail = async (email: string, token: string) => {
+  await resend.emails.send({
+    from: 'Simone <onboarding@resend.dev>',
+    to: email,
+    subject: '2FA Code',
+    html: `<p>Your 2FA code: ${token}</p>`,
   });
 };
