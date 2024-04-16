@@ -1,3 +1,5 @@
+import { NextURL } from 'next/dist/server/web/next-url';
+
 import { auth } from '@/auth';
 import {
   apiAuthPrefix,
@@ -28,7 +30,15 @@ export default auth((req) => {
 
   // if the user is not logged in and is trying to access a non-public route, redirect to login page
   if (!isPublicRoute && !isLoggedIn) {
-    return Response.redirect(new URL('/auth/login', nextUrl));
+    let callbackUrl = nextUrl.pathname;
+    if (nextUrl.search) {
+      callbackUrl += nextUrl.search;
+    }
+    // this writes on the search params the last url visited, so it will be used when logging in to redirect to appropriate url
+    const encodedCallbackUrl = encodeURIComponent(callbackUrl);
+    return Response.redirect(
+      new URL(`/auth/login?callbackUrl=${encodedCallbackUrl}`, nextUrl),
+    );
   }
 
   // if no condition is met, the route is public. allow it
