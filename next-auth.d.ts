@@ -7,4 +7,5 @@ export type ExtendedUser = DefaultSession['user'] & {
   email: string;
   role: UserRole;
   isTwoFactorEnabled: boolean;
+  isOAuth: boolean;
 };

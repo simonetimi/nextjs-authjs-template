@@ -12,7 +12,7 @@ export default async function ProtectedLayout({
 
   return (
     <SessionProvider session={session}>
-      <main className="flex h-full flex-col items-center justify-center bg-gradient-to-b from-slate-100 to-slate-200">
+      <main className="flex min-h-full flex-col items-center justify-center bg-gradient-to-b from-slate-100 to-slate-200 py-10">
         <Navbar />
         {children}
       </main>

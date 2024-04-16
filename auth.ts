@@ -7,6 +7,7 @@ import Credentials from 'next-auth/providers/credentials';
 import GitHub from 'next-auth/providers/github';
 import Google from 'next-auth/providers/google';
 
+import { getAccountByUserId } from '@/data/account';
 import { getTwoFactorConfirmationByUserId } from '@/data/twoFactorConfirmation';
 import { getUserByEmail } from '@/data/user';
 import { getUserById } from '@/data/user';
@@ -29,6 +30,7 @@ declare module 'next-auth' {
       email: string;
       role: UserRole;
       isTwoFactorEnabled: boolean;
+      isOAuth: boolean;
     } & DefaultSession['user'];
   }
 }
@@ -57,7 +59,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // allow OAuth without email verification
       if (account?.provider !== 'credentials') return true;
 
-      // check verification for user signing in though credentials
+      // check email verification for user signing in though credentials
       if (user?.id) {
         const existingUser = await getUserById(user.id);
         if (!existingUser?.emailVerified)
@@ -90,6 +92,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       if (session.user) {
         session.user.isTwoFactorEnabled = token.isTwoFactorEnabled as boolean;
+        session.user.name = token.name as string;
+        session.user.email = token.email as string;
+        session.user.isOAuth = token.isOAuth as boolean;
       }
       return session;
     },
@@ -97,8 +102,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (!token.sub) return token;
       const existingUser = await getUserById(token.sub);
       if (!existingUser) return token;
-      token.role = existingUser.Role;
+      const existingAccount = getAccountByUserId(existingUser.id);
+      // update token with user data
+      token.isOAuth = !existingAccount;
+      token.name = existingUser.name;
+      token.email = existingUser.email;
+      token.role = existingUser.role;
       token.isTwoFactorEnabled = existingUser.isTwoFactorEnabled;
+      console.log(token);
       return token;
     },
   },
