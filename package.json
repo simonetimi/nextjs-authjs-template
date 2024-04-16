@@ -6,6 +6,7 @@
     "build": "next build",
     "commit": "cz",
     "dev": "next dev",
+    "postinstall": "prisma generate",
     "lint": "next lint",
     "start": "next start"
   },
