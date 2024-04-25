@@ -1,81 +1,107 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import { CheckCircleIcon } from '@heroicons/react/24/outline';
+import {
+  Button,
+  Card,
+  CardBody,
+  CardFooter,
+  CardHeader,
+  Input,
+  Link,
+  Spinner,
+} from '@nextui-org/react';
+import { toast } from 'sonner';
 
 import { requestPasswordReset } from '@/actions/requestPasswordReset';
-import { CardWrapper } from '@/components/auth/CardWrapper';
-import { FormError } from '@/components/FormError';
-import { FormSuccess } from '@/components/FormSuccess';
-import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { RequestPasswordResetSchema } from '@/schemas';
 
 export const RequestPasswordResetForm = () => {
-  const [error, setError] = useState<string | undefined>('');
-  const [success, setSuccess] = useState<string | undefined>('');
   const [isPending, startTransition] = useTransition();
-  const form = useForm({
-    resolver: zodResolver(RequestPasswordResetSchema),
-    defaultValues: {
-      email: '',
-    },
-  });
+  const [success, setSuccess] = useState(false);
+  const [email, setEmail] = useState('');
 
-  const onSubmit = (values: z.infer<typeof RequestPasswordResetSchema>) => {
+  const handleOnSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     startTransition(() => {
       (async () => {
-        const response = await requestPasswordReset(values);
-        setError(response?.error);
-        setSuccess(response?.success);
+        try {
+          const response = await requestPasswordReset({ email: email });
+          if (response?.error) {
+            setEmail('');
+            toast.error(response?.error);
+          }
+          if (response?.success) {
+            toast.success(response?.success);
+            setSuccess(true);
+          }
+        } catch {
+          toast.error('Something went wrong!');
+        }
       })();
     });
   };
 
   return (
-    <CardWrapper
-      headerLabel="Reset your password"
-      backButtonLabel="Back to login"
-      backButtonHref="/auth/login"
-    >
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="space-y-4">
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder="yourname@email.com"
-                      type="email"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            ></FormField>
-          </div>
-          <FormError message={error} />
-          <FormSuccess message={success} />
-          <Button type="submit" className="w-full" disabled={isPending}>
-            Request reset
-          </Button>
-        </form>
-      </Form>
-    </CardWrapper>
+    <Card className="h-full w-full p-6">
+      {!success ? (
+        <>
+          <CardHeader className="flex flex-col items-center justify-center gap-4">
+            <h1 className="text-2xl">Request password reset</h1>
+          </CardHeader>
+          <CardBody>
+            <form
+              onSubmit={handleOnSubmit}
+              className="flex flex-col items-center gap-2"
+            >
+              <Input
+                type="email"
+                label="Email"
+                variant="flat"
+                labelPlacement="inside"
+                errorMessage="Please enter a valid email"
+                className="max-w-xs"
+                disabled={isPending}
+                value={email}
+                isRequired
+                onValueChange={(value) => setEmail(value)}
+              />
+              <Button
+                color="primary"
+                className="mt-2 h-11 w-full rounded-lg"
+                disabled={isPending}
+                type="submit"
+              >
+                {isPending ? (
+                  <Spinner color="default" size="sm" />
+                ) : (
+                  'Request password reset'
+                )}
+              </Button>
+            </form>
+          </CardBody>
+        </>
+      ) : (
+        <>
+          <CardHeader className="flex flex-col items-center justify-center gap-4">
+            <h1 className="text-2xl">Password reset link sent!</h1>
+          </CardHeader>
+          <CardBody className="flex flex-col items-center gap-2">
+            <CheckCircleIcon className="text-success w-10" />
+            <p>Check your email for the password reset link</p>
+          </CardBody>
+        </>
+      )}
+      <CardFooter className="flex flex-col items-center justify-center gap-4">
+        <Link
+          color="foreground"
+          href="/auth/login"
+          underline="always"
+          size="sm"
+        >
+          Go back to login
+        </Link>
+      </CardFooter>
+    </Card>
   );
 };

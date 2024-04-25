@@ -1,115 +1,175 @@
 'use client';
 
-import { useState, useTransition } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import { useEffect, useState, useTransition } from 'react';
+import {
+  Button,
+  Card,
+  CardBody,
+  CardFooter,
+  CardHeader,
+  Input,
+  Link,
+  Spinner,
+} from '@nextui-org/react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 import { signup } from '@/actions/signup';
-import { CardWrapper } from '@/components/auth/CardWrapper';
-import { FormError } from '@/components/FormError';
-import { FormSuccess } from '@/components/FormSuccess';
-import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { SignupSchema } from '@/schemas';
+import { Social } from '@/components/auth/Social';
 
 export const SignupForm = () => {
-  const [error, setError] = useState<string | undefined>('');
-  const [success, setSuccess] = useState<string | undefined>('');
+  const router = useRouter();
+  const [passwordsMatch, setPasswordsMatch] = useState(true);
   const [isPending, startTransition] = useTransition();
-  const form = useForm({
-    resolver: zodResolver(SignupSchema),
-    defaultValues: {
-      name: '',
-      email: '',
-      password: '',
-    },
+  const [signupForm, setSignupForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
   });
 
-  const onSubmit = (values: z.infer<typeof SignupSchema>) => {
+  const handleOnSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (signupForm.password !== signupForm.confirmPassword) {
+      return;
+    }
     startTransition(() => {
       (async () => {
-        const response = await signup(values);
-        setSuccess(response.success);
-        setError(response.error);
+        const response = await signup(signupForm);
+        if (response?.error) {
+          toast.error(response?.error);
+        } else if (response?.success) {
+          toast.success(response?.success);
+          setTimeout(() => router.push('/auth/login'), 3000);
+        }
       })();
     });
   };
 
+  // check if password and confirm password match
+  useEffect(() => {
+    if (signupForm.confirmPassword === '') {
+      return;
+    }
+    setPasswordsMatch(signupForm.password === signupForm.confirmPassword);
+  }, [signupForm.password, signupForm.confirmPassword]);
+
+  // workaround for client-side password check (pattern attribute does not work)
+  const [passwordError, setPasswordError] = useState('');
+  const [isPasswordValid, setIsPasswordValid] = useState(true);
+  useEffect(() => {
+    if (signupForm.password === '') {
+      setIsPasswordValid(true);
+      return;
+    }
+    const passwordRegex = new RegExp('^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])');
+    if (!passwordRegex.test(signupForm.password)) {
+      setPasswordError(
+        'Password must contain at least one uppercase letter, one lowercase letter, and one number',
+      );
+      setIsPasswordValid(false);
+    } else {
+      setPasswordError('');
+      setIsPasswordValid(true);
+    }
+  }, [signupForm.password]);
+
   return (
-    <CardWrapper
-      headerLabel="Create an account"
-      backButtonLabel="Already have an account?"
-      backButtonHref="/auth/login"
-      showSocial
-    >
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Your name" type="text" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            ></FormField>
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder="example@email.com"
-                      type="email"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            ></FormField>
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder="Your password"
-                      type="password"
-                      disabled={isPending}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            ></FormField>
-          </div>
-          <FormError message={error} />
-          <FormSuccess message={success} />
-          <Button type="submit" className="w-full" disabled={isPending}>
-            Sign up
+    <Card className="h-full w-full p-6">
+      <CardHeader className="flex flex-col items-center justify-center gap-4">
+        <h1 className="text-2xl">Sign up here!</h1>
+      </CardHeader>
+      <CardBody>
+        <form
+          onSubmit={handleOnSubmit}
+          className="flex flex-col items-center gap-4"
+        >
+          <Input
+            type="text"
+            label="Name"
+            variant="flat"
+            labelPlacement="inside"
+            minLength={2}
+            maxLength={50}
+            className="max-w-xs"
+            disabled={isPending}
+            value={signupForm.name}
+            isRequired
+            onValueChange={(value) =>
+              setSignupForm({ ...signupForm, name: value })
+            }
+          />
+          <Input
+            type="email"
+            label="Email"
+            variant="flat"
+            labelPlacement="inside"
+            errorMessage="Please enter a valid email"
+            minLength={4}
+            maxLength={254}
+            className="max-w-xs"
+            disabled={isPending}
+            value={signupForm.email}
+            isRequired
+            onValueChange={(value) =>
+              setSignupForm({ ...signupForm, email: value })
+            }
+          />
+          <Input
+            type="password"
+            label="Password"
+            variant="flat"
+            labelPlacement="inside"
+            minLength={6}
+            maxLength={254}
+            isInvalid={!isPasswordValid}
+            errorMessage={passwordError}
+            className="max-w-xs"
+            disabled={isPending}
+            value={signupForm.password}
+            isRequired
+            onValueChange={(value) =>
+              setSignupForm({ ...signupForm, password: value })
+            }
+          />
+          <Input
+            type="password"
+            label="Confirm password"
+            variant="flat"
+            labelPlacement="inside"
+            minLength={6}
+            maxLength={254}
+            className="max-w-xs"
+            disabled={isPending}
+            isInvalid={!passwordsMatch}
+            errorMessage="Passwords don't match!"
+            value={signupForm.confirmPassword}
+            isRequired
+            onValueChange={(value) =>
+              setSignupForm({ ...signupForm, confirmPassword: value })
+            }
+          />
+          <Button
+            color="primary"
+            className="mt-2 h-11 w-full rounded-lg"
+            disabled={isPending}
+            type="submit"
+          >
+            {isPending ? <Spinner color="default" size="sm" /> : 'Sign up'}
           </Button>
         </form>
-      </Form>
-    </CardWrapper>
+      </CardBody>
+      <CardFooter className="flex flex-col items-center justify-center gap-4">
+        <Social />
+        <Link
+          color="foreground"
+          href="/auth/login"
+          underline="always"
+          size="sm"
+        >
+          Already have an account?
+        </Link>
+      </CardFooter>
+    </Card>
   );
 };

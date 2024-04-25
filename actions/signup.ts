@@ -1,4 +1,5 @@
 'use server';
+
 import { hash } from 'bcryptjs';
 import * as z from 'zod';
 
@@ -12,7 +13,7 @@ export const signup = async (values: z.infer<typeof SignupSchema>) => {
   const validatedFields = SignupSchema.safeParse(values);
 
   if (!validatedFields.success) {
-    return { error: 'Invalid fields' };
+    return { error: validatedFields.error.errors[0].message };
   }
 
   const { name, email, password } = validatedFields.data;

@@ -2,10 +2,10 @@
 
 import { FaGithub } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
+import { Button } from '@nextui-org/react';
 import { useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 
-import { Button } from '@/components/ui/button';
 import { DEFAULT_LOGGED_IN_REDIRECT } from '@/routes';
 
 export const Social = () => {
@@ -22,7 +22,7 @@ export const Social = () => {
       <Button
         size="lg"
         className="w-full"
-        variant="outline"
+        variant="bordered"
         onClick={() => onClick('google')}
       >
         <FcGoogle className="h-5 w-5" />
@@ -30,7 +30,7 @@ export const Social = () => {
       <Button
         size="lg"
         className="w-full"
-        variant="outline"
+        variant="bordered"
         onClick={() => onClick('github')}
       >
         <FaGithub className="h-5 w-5" />

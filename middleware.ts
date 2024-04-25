@@ -1,5 +1,3 @@
-import { NextURL } from 'next/dist/server/web/next-url';
-
 import { auth } from '@/auth';
 import {
   apiAuthPrefix,
@@ -20,7 +18,7 @@ export default auth((req) => {
     return;
   }
 
-  // auth routes are not protected, but if the user is logged it redirect to an appropriate route (like profile or settings)
+  // auth routes are not protected, but if the user is logged it redirect to an appropriate route (like user or account)
   if (isAuthRoute) {
     if (isLoggedIn) {
       return Response.redirect(new URL(DEFAULT_LOGGED_IN_REDIRECT, nextUrl));

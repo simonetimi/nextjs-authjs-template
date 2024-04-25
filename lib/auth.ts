@@ -4,8 +4,8 @@ import { auth } from '@/auth';
 
 export const currentUser = async () => {
   const session = await auth();
-  // invalidate cache so the server component is updated
-  revalidatePath('/server');
+  // invalidate cache so the user component is updated
+  revalidatePath('/user');
   return session?.user;
 };
 
