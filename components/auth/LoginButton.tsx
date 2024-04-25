@@ -1,21 +1,26 @@
 'use client';
 
+import {
+  Button,
+  Modal,
+  ModalBody,
+  ModalContent,
+  useDisclosure,
+} from '@nextui-org/react';
 import { useRouter } from 'next/navigation';
 
 import { LoginForm } from '@/components/auth/LoginForm';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 
 interface LoginButtonProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   mode?: 'modal' | 'redirect';
-  asChild?: boolean;
 }
 
 export const LoginButton = ({
   children,
   mode = 'redirect',
-  asChild,
 }: LoginButtonProps) => {
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const router = useRouter();
 
   const onClick = () => {
@@ -24,17 +29,27 @@ export const LoginButton = ({
 
   if (mode === 'modal') {
     return (
-      <Dialog>
-        <DialogTrigger asChild={asChild}>{children}</DialogTrigger>
-        <DialogContent className="w-auto border-none bg-transparent p-0">
-          <LoginForm />
-        </DialogContent>
-      </Dialog>
+      <>
+        <Button className="w-24" onPress={onOpen} color="primary">
+          Sign in
+        </Button>
+        <Modal
+          isOpen={isOpen}
+          onOpenChange={onOpenChange}
+          className="w-3/4 md:w-[380px]"
+          classNames={{
+            body: 'm-0 p-0',
+          }}
+        >
+          <ModalContent>
+            <ModalBody>
+              <LoginForm />
+            </ModalBody>
+          </ModalContent>
+        </Modal>
+      </>
     );
   }
-  return (
-    <button onClick={onClick} className="cursor-pointer">
-      {children}
-    </button>
-  );
+
+  return <button onClick={onClick}>{children}</button>;
 };

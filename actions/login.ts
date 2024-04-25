@@ -1,4 +1,6 @@
 'use server';
+
+import { compare } from 'bcryptjs';
 import { AuthError } from 'next-auth';
 import * as z from 'zod';
 
@@ -33,6 +35,14 @@ export const login = async (
   // check if user exists. if user has no password, it means the signup was made through a provider
   if (!existingUser || !existingUser.email || !existingUser.password) {
     return { error: 'User does not exist!' };
+  }
+
+  // check if the provided password matches the one in the database
+  if (existingUser.password) {
+    const isPasswordMatch = await compare(password, existingUser.password);
+    if (!isPasswordMatch) {
+      return { error: 'Wrong password!' };
+    }
   }
 
   // check if user is verified
@@ -121,7 +131,7 @@ export const login = async (
     if (error instanceof AuthError) {
       switch (error.type) {
         case 'CredentialsSignin':
-          return { error: 'Wrong username or password!' };
+          return { error: 'Login failed. Wrong credentials!' };
         default:
           return { error: 'Something went wrong!' };
       }

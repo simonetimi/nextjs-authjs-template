@@ -23,7 +23,7 @@ export const authRoutes: string[] = [
 export const apiAuthPrefix: string = '/api/auth';
 
 /**
- * Logged in users will be redirected to settings
+ * Logged in users will be redirected to account
  * @type {string}
  */
-export const DEFAULT_LOGGED_IN_REDIRECT: string = '/settings';
+export const DEFAULT_LOGGED_IN_REDIRECT: string = '/account';

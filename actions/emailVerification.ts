@@ -1,4 +1,5 @@
 'use server';
+
 import { getUserByEmail } from '@/data/user';
 import { getVerificationTokenByToken } from '@/data/verificationToken';
 import { prisma } from '@/lib/db';
@@ -18,10 +19,21 @@ export const emailVerification = async (token: string) => {
     return { error: 'Token has expired' };
   }
 
-  // check if email has changed since the request
-  const user = await getUserByEmail(existingToken.email);
+  let user;
+
+  // find if user has the newEmail field filled in. if it does, it proceeds to the verification
+  user = await prisma.user.findFirst({
+    where: {
+      newEmail: existingToken.email,
+    },
+  });
+
+  // if there is no newEmail field (so "user" is null), finds the user current email. if it can't find it, it simply returns
   if (!user) {
-    return { error: 'Email does not exist' };
+    user = await getUserByEmail(existingToken.email);
+    if (!user) {
+      return { error: 'Email does not exist' };
+    }
   }
 
   // set user has verified
@@ -32,6 +44,7 @@ export const emailVerification = async (token: string) => {
     data: {
       emailVerified: now,
       email: existingToken.email,
+      newEmail: null,
     },
   });
 

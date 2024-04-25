@@ -1,4 +1,5 @@
 'use server';
+
 import * as z from 'zod';
 
 import { getPasswordResetTokenByEmail } from '@/data/passwordResetToken';
@@ -51,6 +52,6 @@ export const requestPasswordReset = async (
   );
 
   return {
-    success: 'A reset link has been sent!',
+    success: 'A password reset link has been sent to your email!',
   };
 };

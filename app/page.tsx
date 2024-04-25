@@ -1,30 +1,16 @@
-import { Poppins } from 'next/font/google';
+import { Card, CardBody, CardHeader } from '@nextui-org/card';
 
 import { LoginButton } from '@/components/auth/LoginButton';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-
-const font = Poppins({ subsets: ['latin'], weight: '600' });
 
 export default function Home() {
   return (
-    <main className="flex h-full flex-col items-center justify-center bg-gradient-to-b from-slate-300 to-slate-500">
-      <div className="flex flex-col gap-6 text-center">
-        <h1
-          className={cn(
-            'text-6xl font-semibold text-white drop-shadow-md',
-            font.className,
-          )}
-        >
-          Auth 🔑
-        </h1>
-        <p className="text-white">Auth service</p>
-        <LoginButton mode="modal" asChild>
-          <Button variant="secondary" size="lg">
-            Sign in
-          </Button>
-        </LoginButton>
-      </div>
-    </main>
+    <Card className="h-56 w-2/3 flex-col items-center justify-center gap-8 p-4 dark:border dark:border-neutral-800 md:w-[400px]">
+      <CardHeader className="mt-4 justify-center">
+        <h1 className="text-3xl font-semibold drop-shadow-md">Home Page 🏠</h1>
+      </CardHeader>
+      <CardBody className="items-center justify-center">
+        <p>This is the home page</p>
+      </CardBody>
+    </Card>
   );
 }

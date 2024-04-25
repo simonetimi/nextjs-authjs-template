@@ -1,165 +1,160 @@
 'use client';
-
-import { useState, useTransition } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import Link from 'next/link';
+import { useEffect, useState, useTransition } from 'react';
+import {
+  Button,
+  Card,
+  CardBody,
+  CardFooter,
+  CardHeader,
+  Input,
+  Link,
+  Spinner,
+} from '@nextui-org/react';
 import { useSearchParams } from 'next/navigation';
-import * as z from 'zod';
+import { toast } from 'sonner';
 
 import { login } from '@/actions/login';
-import { CardWrapper } from '@/components/auth/CardWrapper';
-import { FormError } from '@/components/FormError';
-import { FormSuccess } from '@/components/FormSuccess';
-import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { LoginSchema } from '@/schemas';
+import { Social } from '@/components/auth/Social';
 
 export const LoginForm = () => {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl');
   const urlError =
     searchParams.get('error') === 'OAuthAccountNotLinked'
-      ? 'Email already in use with different provider!'
+      ? 'Email already in use with a different provider!'
       : '';
   const [showTwoFactor, setShowTwoFactor] = useState(false);
-  const [error, setError] = useState<string | undefined>('');
-  const [success, setSuccess] = useState<string | undefined>('');
   const [isPending, startTransition] = useTransition();
-  const form = useForm({
-    resolver: zodResolver(LoginSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-      code: '',
-    },
+  const [loginForm, setLoginForm] = useState({
+    email: '',
+    password: '',
+    code: '',
   });
 
-  const onSubmit = (values: z.infer<typeof LoginSchema>) => {
+  useEffect(() => {
+    if (urlError) {
+      toast.error(urlError);
+    }
+  }, [urlError]);
+
+  const handleOnSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     startTransition(() => {
       (async () => {
         try {
-          const response = await login(values, callbackUrl);
+          const response = await login(loginForm, callbackUrl);
           if (response?.error) {
-            form.reset();
-            setError(response?.error);
-          } else if (response?.success) {
-            form.reset();
-            setSuccess(response?.success);
+            setLoginForm({ email: '', password: '', code: '' });
+            toast.error(response?.error);
           }
           if (response?.twoFactor) {
             setShowTwoFactor(true);
           }
         } catch {
-          setError('Something went wrong!');
+          toast.error('Something went wrong!');
         }
       })();
     });
   };
 
   return (
-    <CardWrapper
-      headerLabel="Welcome back"
-      backButtonLabel="Don't have an account?"
-      backButtonHref="/auth/signup"
-      showSocial
-    >
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="space-y-4">
-            {!showTwoFactor ? (
-              <>
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          placeholder="yourname@email.com"
-                          type="email"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                ></FormField>
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Password</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          placeholder="Your password"
-                          type="password"
-                          disabled={isPending}
-                        />
-                      </FormControl>
-                      <Button
-                        variant="link"
-                        size="sm"
-                        className="px-0 font-normal"
-                        asChild
-                      >
-                        <Link href="/auth/request-password-reset">
-                          Forgot password?
-                        </Link>
-                      </Button>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                ></FormField>
-              </>
-            ) : (
-              <>
-                <FormField
-                  key="two-factor-code"
-                  control={form.control}
-                  name="code"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>2FA Code</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          placeholder="Enter code"
-                          type="tel"
-                          disabled={isPending}
-                        />
-                      </FormControl>
-                      <Button
-                        variant="link"
-                        size="sm"
-                        className="px-0 font-normal"
-                        asChild
-                      ></Button>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                ></FormField>
-              </>
-            )}
-          </div>
-          <FormError message={error || urlError} />
-          <FormSuccess message={success} />
-          <Button type="submit" className="w-full" disabled={isPending}>
-            {showTwoFactor ? 'Confirm code' : 'Login'}
-          </Button>
-        </form>
-      </Form>
-    </CardWrapper>
+    <Card className="h-full w-full p-6">
+      <CardHeader className="flex flex-col items-center justify-center gap-4">
+        <h1 className="text-2xl">Welcome back 👋</h1>
+        {showTwoFactor && (
+          <h2 className="text-sm">Check your email and enter the 2FA code</h2>
+        )}
+      </CardHeader>
+      <CardBody>
+        {showTwoFactor ? (
+          <form
+            onSubmit={handleOnSubmit}
+            className="flex flex-col items-center gap-4"
+          >
+            <Input
+              type="tel"
+              variant="flat"
+              labelPlacement="inside"
+              isInvalid={false}
+              errorMessage="Please enter a valid code"
+              className="max-w-xs"
+              disabled={isPending}
+              value={loginForm.code}
+              onValueChange={(value) =>
+                setLoginForm({ ...loginForm, code: value })
+              }
+            />
+            <Button
+              color="primary"
+              className="mt-2 h-11 w-full rounded-lg"
+              disabled={isPending}
+              type="submit"
+            >
+              {isPending ? <Spinner color="default" size="sm" /> : 'Enter code'}
+            </Button>
+          </form>
+        ) : (
+          <form
+            onSubmit={handleOnSubmit}
+            className="flex flex-col items-center gap-2"
+          >
+            <Input
+              type="email"
+              label="Email"
+              variant="flat"
+              labelPlacement="inside"
+              errorMessage="Please enter a valid email"
+              className="max-w-xs"
+              disabled={isPending}
+              value={loginForm.email}
+              isRequired
+              onValueChange={(value) =>
+                setLoginForm({ ...loginForm, email: value })
+              }
+            />
+            <Input
+              type="password"
+              label="Password"
+              variant="flat"
+              labelPlacement="inside"
+              className="max-w-xs"
+              disabled={isPending}
+              value={loginForm.password}
+              isRequired
+              onValueChange={(value) =>
+                setLoginForm({ ...loginForm, password: value })
+              }
+            />
+            <Link
+              color="foreground"
+              href="/auth/request-password-reset"
+              underline="always"
+              className="self-end text-xs"
+            >
+              Forgot your password?
+            </Link>
+            <Button
+              color="primary"
+              className="mt-2 h-11 w-full rounded-lg"
+              disabled={isPending}
+              type="submit"
+            >
+              {isPending ? <Spinner color="default" size="sm" /> : 'Log in'}
+            </Button>
+          </form>
+        )}
+      </CardBody>
+      <CardFooter className="flex flex-col items-center justify-center gap-4">
+        <Social />
+        <Link
+          color="foreground"
+          href="/auth/signup"
+          underline="always"
+          size="sm"
+        >
+          Don&apos;t have an account?
+        </Link>
+      </CardFooter>
+    </Card>
   );
 };
