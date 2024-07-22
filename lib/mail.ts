@@ -1,8 +1,8 @@
 import nodemailer from 'nodemailer';
 
 const transporter = nodemailer.createTransport({
-  host: 'sandbox.smtp.mailtrap.io',
-  port: 2525,
+  host: process.env.MAIL_HOST as string,
+  port: Number(process.env.MAIL_port),
   auth: {
     user: process.env.MAIL_USER,
     pass: process.env.MAIL_PASS,
@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
 });
 
 export const sendVerificationEmail = async (email: string, token: string) => {
-  const confirmLink = `${process.env.DOMAIN}/auth/verify-email/?token=${token}`;
+  const confirmLink = `${process.env.DOMAIN}/auth/verify-email?token=${token}`;
 
   const mailOptions = {
     from: 'Simone',
@@ -22,7 +22,7 @@ export const sendVerificationEmail = async (email: string, token: string) => {
 };
 
 export const sendPasswordResetEmail = async (email: string, token: string) => {
-  const confirmLink = `${process.env.DOMAIN}/auth/password-reset/?token=${token}`;
+  const confirmLink = `${process.env.DOMAIN}/auth/password-reset?token=${token}`;
   const mailOptions = {
     from: 'Simone',
     to: email,

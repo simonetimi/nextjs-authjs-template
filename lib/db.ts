@@ -6,7 +6,7 @@ declare global {
   var prisma: PrismaClient | undefined;
 }
 
-// avoids creating a new prisma client every time Next.js uses hot reaload
+// avoids creating a new prisma client every time Next.js uses hot reload
 export const prisma = globalThis.prisma || new PrismaClient();
 
 if (process.env.NODE_ENV !== 'production') globalThis.prisma = prisma;
